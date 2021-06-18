@@ -4,7 +4,7 @@
 using .Threads
 import Base.@lock
 import Base.Threads.@spawn
-import Threads.Condition
+#import Threads.Condition
 
 global buff_size    = 3
 global numProducers = 3
