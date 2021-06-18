@@ -4,6 +4,7 @@
 using .Threads
 import Base.@lock
 import Base.Threads.@spawn
+import Threads.Condition
 
 global buff_size    = 3
 global numProducers = 3
@@ -16,8 +17,8 @@ global count        = 0
 global buffer = collect(1:100)  
 
 global buffer_lock = ReentrantLock()
-global buffer_isempty = Event()
-global buffer_isfull = Event()
+global buffer_isempty = Threads.Condition(buffer_lock)
+global buffer_isfull = Threads.Condition(buffer_lock)
 
 function buff_append!(buffer, value)
     buffer[fillIndex] = value
