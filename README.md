@@ -38,6 +38,7 @@ Which will probably look different on your machine, but the behaviour is the fol
 
 Can you spot what's wrong with just this printout?
 
-```spoiler Spoiler tags
-Some of the producers can also be consumers! That's not good! 
-```
+<details>
+  <summary>Spoiler warning</summary>
+    Some of the producers can also be consumers! That's not good! 
+</details>
