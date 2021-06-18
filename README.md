@@ -4,7 +4,7 @@ This is a Julia port of Markus Kuppe's workshop [Weeks of Debugging Can Save You
 
 The task is relatively simple:
 
-There is a C code implementation for a [Multiple Consumers Multiple Producers](https://github.com/lemmy/BlockingQueue/blob/master/impl/producer_consumer.c) that was working fine for months and then one day in production in blew up and you have to find the deadlock.
+There is a C code implementation for a [Multiple Consumers Multiple Producers](https://github.com/lemmy/BlockingQueue/blob/master/impl/producer_consumer.c) [Blocking Queue](https://github.com/lemmy/BlockingQueue) that was working fine for months and then one day in production in blew up and you have to find the deadlock.
 
 The point is to match Julia semantics side by side with a TLA+ implementation to explore dataraces, deadlock freedom, livelock freedom, starvation guarantees, play around with the new Julia atomic semantics... all the good stuff.
 
