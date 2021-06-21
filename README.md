@@ -12,7 +12,9 @@ We start with `mpmpc0.jl`, the first attempt at porting the C code linked above.
 
 You can try and look at the code and figure out what went wrong before reading the diagnoses, or try to come up with your own TLA+ spec after looking at the code.
 
-If you don't know where to get started with TLA+, check out [Hillel Wayne's website, learntla.com](learntla.com) or [Leslie Lamport's, its creator's website](https://lamport.azurewebsites.net/tla/tla.html).
+*Note*: implementation hand crafted mutexes is a good learning experience, but you wouldn't want to use this in production. Data structures like [Channels](https://docs.julialang.org/en/v1/manual/asynchronous-programming/#Communicating-with-Channels) provide these abstractions safely and with a friendly API. The point is to develop a specification for a concurrent algorithm alongside a Julia implementation and work towards establishing desirable properties of the algorithm. I also recommend checking out the [JuliaFolds organization](https://juliafolds.github.io/data-parallelism/tutorials/concurrency-patterns/) which is building exciting tooling around concurrency in Julia.
+
+If you don't know where to get started with TLA+, check out [Hillel Wayne's website, learntla.com](learntla.com) or [Leslie Lamport's (TLA+'s creator) website](https://lamport.azurewebsites.net/tla/tla.html).
 
 Happy Hacking!
 
@@ -20,13 +22,13 @@ Happy Hacking!
 
 ## Vocabulary P0
 
-There's a lot of programming idioms native to concurrent algorithms that are standardized from C idioms. Here's a table of the ones we will be using.
+There's a lot of programming idioms native to concurrent algorithms that are standardized from C idioms but look just a lil' bit different in Julia. Here's a table of the ones we will be using, and how we use them.
 
-| C idiom | Julia idiom | Meaning | 
+| *C idiom* | *Julia idiom* | *Meaning* | 
 --- | --- | ---
 | `pthread_mutex_t mutex;` | `global buffer_lock = Reentrantlock() ` | Create a mutex called `buffer_lock` which threads will need to obtain in order to access the array `buffer`. There's other types of locks like `SpinLock` but that's not our concern right now. |
-| `pthread_cond_t empty` | `global buffer_isempty = Threads.Condition(buffer_lock)` | Create a thread-safe event source that tasks can wait for. This will let us put different workers to wait for the buffer being empty/full and then carrying out work. `Condition` can "flip" states many times, `Event`s only "flip" once. See `?Threads.Condition` for more info. |
-| `while (1) { assert(pthread_mutex_lock(&mutex) == 0); ... }` | ` while true @lock buffer_lock begin ... end end` | Continually try to take the lock called `mutex/buffer_lock`, and when you do, go to the body of the while loop |
+| `pthread_cond_t empty` | `global buffer_isempty = Threads.Condition(buffer_lock)` | Create a thread-safe event source that threads can wait for. This will let us put different workers to wait for the buffer being empty/full and then carrying out work. `Condition` can "flip" states many times, `Event`s only "flip" once. See `?Threads.Condition` for more info. |
+| `while (1) { assert(pthread_mutex_lock(&mutex) == 0); ... }` | ` while true @lock buffer_lock begin ... end end` | Continually try to take the lock called `mutex/buffer_lock`. When you do, go to the body of the while loop. |
 | `pthread_cond_wait(&empty, &full)` | `wait(buffer_isfull)` | This thread will wait until the `buffer_isfull` condition is signalled |
 | `pthread_cond_signal(&full)` | `notify(buffer_isfull)` | This thread will notify the `Condition` `buffer_isfull` that it should flip to `true` |
 | `pthread_mutex_unlock(&mutex);` | `unlock(buffer_lock)`, or implicit. | Release the `mutex`/`lock` this thread has on `buffer_lock` if you use `@lock buffer_lock expression`, that unfolds to a try/finally block with `unlock` at the end. See the helpdocs for `?Base.@lock` for more info|

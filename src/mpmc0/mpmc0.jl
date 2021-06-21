@@ -11,9 +11,9 @@ global numProducers = 3
 global numConsumers = 3
 global fillIndex    = 0
 global useIndex     = 0
-global count        = 0
+global xcount        = 0
 global useIndex     = 0
-global count        = 0
+global xcount        = 0
 global buffer = collect(1:100)  
 
 global buffer_lock = ReentrantLock()
@@ -23,13 +23,13 @@ global buffer_isfull = Threads.Condition(buffer_lock)
 function buff_append!(buffer, value)
     buffer[fillIndex] = value
     fillIndex = (fillIndex + 1) % buff_size
-    count -= 1
+    xcount -= 1
 end
 
 function buff_head!(buffer)
     tmp = buffer[useIndex]
     useIndex = (useIndex + 1) % buff_size
-    count -= 1
+    xcount -= 1
     tmp
 end
 
@@ -37,7 +37,7 @@ function producer()
     println("I'm producer $(threadid())")
     while true
         @lock buffer_lock begin
-            while count == buff_size
+            while xcount == buff_size
                 wait(buffer_isempty)
             end
             buff_append!(buffer, rand(1:10))
@@ -53,7 +53,7 @@ function consumer()
     
     while true
         @lock buffer_lock begin
-            while count == 0
+            while xcount == 0
                 wait(buffer_isfull)
             end
             buff_head!(buffer)
@@ -68,10 +68,10 @@ end
 function main(buffer_size, numProducers, numConsumers)
     println("Buffer size = $buffer_size, Producers = $numProducers, Consumers = $numConsumers")
     @sync begin
-        @async for _ in 1:numProducers
+        for _ in 1:numProducers
             @spawn producer()
         end
-        @async for _ in 1:numConsumers
+        for _ in 1:numConsumers
             @spawn consumer()
         end
     end
